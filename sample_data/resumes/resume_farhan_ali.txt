@@ -1,0 +1,22 @@
+Farhan Ali
+Python Backend Developer
+Email: farhan.ali@example.com
+
+Summary:
+Backend developer with 3 years of experience building APIs in Python (Django)
+and working with relational databases.
+
+Experience:
+Backend Developer, ShopEasy (2022 - Present)
+- Built REST APIs using Django REST Framework
+- Designed database schemas in PostgreSQL
+- Used Docker for local development environments
+- Wrote pytest test cases for critical endpoints
+- Deployed services to AWS EC2
+
+Skills:
+Python, Django, Django REST Framework, Flask, PostgreSQL, Docker, AWS (EC2),
+Git, pytest, Agile
+
+Education:
+B.E. in Information Science, PES University (2021)

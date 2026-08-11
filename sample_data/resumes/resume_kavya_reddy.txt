@@ -1,0 +1,19 @@
+Kavya Reddy
+Graphic Designer & Front-End Enthusiast
+Email: kavya.reddy@example.com
+
+Summary:
+Creative graphic designer with 3 years of experience in visual design and some
+front-end development experience using HTML/CSS.
+
+Experience:
+Graphic Designer, AdCreators Studio (2021 - Present)
+- Designed marketing collateral, social media graphics, and brand assets
+- Built simple landing pages using HTML, CSS, and basic JavaScript
+- Used Figma and Adobe Photoshop/Illustrator daily
+
+Skills:
+Photoshop, Illustrator, Figma, HTML, CSS, JavaScript (basic), Canva
+
+Education:
+Diploma in Visual Communication (2020)

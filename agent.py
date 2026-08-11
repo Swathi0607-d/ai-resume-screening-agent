@@ -80,16 +80,39 @@ def compute_similarity_scores(jd_text: str, resume_texts: list[str]) -> list[flo
     similarities = cosine_similarity(jd_vector, resume_vectors)[0]
     return [round(float(s) * 100, 2) for s in similarities]
 
+# --------------------------------------------------------------------------
+# Rank all resumes in a folder against the JD
+# --------------------------------------------------------------------------
+
+def rank_resumes(jd_path: str, resumes_dir: str) -> list[dict]:
+    jd_path = Path(jd_path)
+    resumes_dir = Path(resumes_dir)
+
+    jd_text = extract_text(jd_path)
+
+    resume_files = sorted([
+        p for p in resumes_dir.iterdir()
+        if p.suffix.lower() in (".txt", ".pdf", ".docx")
+    ])
+    resume_texts = [extract_text(p) for p in resume_files]
+    scores = compute_similarity_scores(jd_text, resume_texts)
+
+    results = [
+        {"candidate_file": path.name, "score": score}
+        for path, score in zip(resume_files, scores)
+    ]
+    results.sort(key=lambda r: r["score"], reverse=True)
+    for i, r in enumerate(results, start=1):
+        r["rank"] = i
+    return results
+
 # --- Quick manual test, so you can see this actually works ---
 if __name__ == "__main__":
-    sample_resume = Path("sample_data/resumes/resume_priya_sharma.txt")
-    text = extract_text(sample_resume)
-
-    jd_path = Path("sample_data/job_description.txt")
-    jd_text = extract_text(jd_path)
-    skills = extract_skill_keywords(jd_text)
-    print("Skills found in job description:")
-    print(skills)
-
-    scores = compute_similarity_scores(jd_text, [text])
-    print("\nSimilarity score for Priya Sharma's resume:", scores[0])
+    results = rank_resumes(
+        jd_path="sample_data/job_description.txt",
+        resumes_dir="sample_data/resumes",
+    )
+    print("RANKED CANDIDATES")
+    print("-" * 40)
+    for r in results:
+        print(f"#{r['rank']:>2}  {r['candidate_file']:<35} score={r['score']}")

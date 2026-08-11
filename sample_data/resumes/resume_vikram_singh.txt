@@ -1,0 +1,21 @@
+Vikram Singh
+Full Stack Developer
+Email: vikram.singh@example.com
+
+Summary:
+Full stack developer with 5 years of experience across Python/Django backends
+and React frontends, with solid AWS and DevOps exposure.
+
+Experience:
+Full Stack Developer, TravelNow (2020 - Present)
+- Built REST APIs in Django and integrated with a React frontend
+- Managed PostgreSQL databases, wrote complex queries and migrations
+- Deployed on AWS (EC2, S3, Lambda)
+- Used Docker and docker-compose for local dev and staging environments
+
+Skills:
+Python, Django, Flask, React, REST APIs, PostgreSQL, SQLAlchemy, Docker,
+AWS (EC2, S3, Lambda), Git, pytest, CI/CD, microservices
+
+Education:
+B.Tech in Computer Science, NIT Surathkal (2018)

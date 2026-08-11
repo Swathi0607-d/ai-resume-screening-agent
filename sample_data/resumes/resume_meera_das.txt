@@ -1,0 +1,19 @@
+Meera Das
+Data Analyst
+Email: meera.das@example.com
+
+Summary:
+Data analyst with 2 years of experience in SQL reporting and Python for data
+analysis.
+
+Experience:
+Data Analyst, RetailMetrics (2022 - Present)
+- Wrote complex SQL queries for business reporting
+- Used Python (pandas, matplotlib) for data analysis and visualization
+- Occasionally used Flask to expose small internal APIs for dashboards
+
+Skills:
+Python (pandas, numpy), SQL, Power BI, Excel, Flask (basic), Git
+
+Education:
+B.Sc in Statistics, Delhi University (2022)

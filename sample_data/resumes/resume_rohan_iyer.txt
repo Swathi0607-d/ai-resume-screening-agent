@@ -1,0 +1,22 @@
+Rohan Iyer
+Senior Backend Engineer
+Email: rohan.iyer@example.com
+
+Summary:
+Senior backend engineer with 6+ years of Python experience, specializing in
+scalable REST APIs, microservices, and cloud infrastructure on AWS.
+
+Experience:
+Senior Backend Engineer, CloudNet Systems (2019 - Present)
+- Led design of microservices architecture using Python and Flask
+- Managed PostgreSQL and MySQL databases with SQLAlchemy ORM
+- Owned AWS infrastructure (EC2, Lambda, S3) for a 10-service platform
+- Implemented CI/CD pipelines with Jenkins and GitHub Actions
+- Wrote extensive pytest suites, enforced 90%+ test coverage
+
+Skills:
+Python, Django, Flask, FastAPI, REST APIs, PostgreSQL, MySQL, SQLAlchemy,
+Docker, Kubernetes, AWS (EC2, S3, Lambda), Git, pytest, CI/CD, microservices
+
+Education:
+M.Tech in Computer Science, IIT Roorkee (2017)

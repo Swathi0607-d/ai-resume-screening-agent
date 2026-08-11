@@ -1,0 +1,19 @@
+Sahil Kapoor
+Junior Python Developer
+Email: sahil.kapoor@example.com
+
+Summary:
+Recent graduate with 1 year of internship experience in Python backend
+development.
+
+Experience:
+Backend Intern, FreshCode Labs (2023 - Present)
+- Built small REST API endpoints in Flask under senior guidance
+- Wrote basic SQL queries against a MySQL database
+- Learned Git workflows and participated in code reviews
+
+Skills:
+Python, Flask, MySQL, Git, pytest (basic), REST APIs (basic)
+
+Education:
+B.Tech in Computer Science, RV College of Engineering (2023)

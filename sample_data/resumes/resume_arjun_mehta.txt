@@ -1,0 +1,20 @@
+Arjun Mehta
+Software Developer
+Email: arjun.mehta@example.com
+
+Summary:
+Software developer with 2 years of experience, mostly in Python scripting and
+some web development.
+
+Experience:
+Junior Developer, DataWorks Pvt Ltd (2022 - Present)
+- Wrote Python scripts for data cleaning and automation
+- Built a small Flask app for internal reporting
+- Used MySQL for storing processed data
+- Used Git for version control on team projects
+
+Skills:
+Python, Flask, MySQL, Git, HTML, CSS, JavaScript (basic), Excel
+
+Education:
+B.Sc in Computer Applications, Bangalore University (2021)

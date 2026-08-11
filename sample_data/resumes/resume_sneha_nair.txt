@@ -1,0 +1,20 @@
+Sneha Nair
+Human Resources Executive
+Email: sneha.nair@example.com
+
+Summary:
+HR professional with 3 years of experience in recruitment, onboarding, and
+employee engagement for mid-size companies.
+
+Experience:
+HR Executive, PeopleFirst Solutions (2021 - Present)
+- Managed end-to-end recruitment for technical and non-technical roles
+- Conducted onboarding sessions for new hires
+- Maintained employee records using HRMS software (Zoho People)
+
+Skills:
+Recruitment, Onboarding, HRMS (Zoho People), MS Excel, Communication,
+Employee Engagement, Payroll Coordination
+
+Education:
+MBA in Human Resource Management, Christ University (2020)
