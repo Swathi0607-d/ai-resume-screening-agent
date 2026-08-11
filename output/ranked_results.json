@@ -28,7 +28,7 @@
     "missing_skills": [
       "orm"
     ],
-    "reasoning": "[SKIPPED - daily Gemini quota exhausted, re-run later]"
+    "reasoning": "Priya Sharma is a strong fit for the Backend Python Developer role, with 4 years of experience in building REST APIs using Python, Django, and Flask, as well as a strong background in PostgreSQL database design. Her experience in deploying and monitoring services on AWS EC2 and S3, as well as setting up CI/CD pipelines, are notable strengths. However, one gap in her profile is the lack of explicit experience with Object-Relational Mapping (ORM) tools, which is a required skill for the role, although she does have experience with SQL databases and has worked with SQLAlchemy, which is an ORM tool, but it is not explicitly mentioned as a skill she has in the context of ORM. Additionally, her experience with pytest and Docker are also notable strengths that align with the job requirements."
   },
   {
     "rank": 2,
@@ -58,7 +58,7 @@
       "pytest"
     ],
     "missing_skills": [],
-    "reasoning": "[SKIPPED - daily Gemini quota exhausted, re-run later]"
+    "reasoning": "Rohan Iyer is a strong fit for the Backend Python Developer role, with concrete strengths in designing and building REST APIs using Python and Flask, as well as experience with SQL databases and ORM tools like SQLAlchemy. His experience with AWS, including EC2, Lambda, and S3, is also a significant asset, and his familiarity with CI/CD pipelines and pytest will be beneficial in deploying and monitoring services. One potential gap is that the job description mentions a basic understanding of Docker, and while Rohan has experience with Docker, his resume highlights more extensive experience with Kubernetes, so it's unclear if he has a basic or advanced understanding of Docker specifically. Overall, Rohan's technical skills and experience make him a well-qualified candidate for the position."
   },
   {
     "rank": 3,
@@ -89,7 +89,7 @@
       "mysql",
       "orm"
     ],
-    "reasoning": "[SKIPPED - daily Gemini quota exhausted, re-run later]"
+    "reasoning": "Vikram Singh is a strong candidate for the Backend Python Developer role, with notable strengths in designing and building REST APIs using Django, as well as experience with PostgreSQL databases and AWS deployment. His experience with Docker, Git, and CI/CD pipelines also aligns well with the job requirements. However, one gap in his profile is the lack of experience with MySQL, which is one of the required SQL databases, although his experience with PostgreSQL and SQLAlchemy suggests he may be able to adapt to other SQL databases. Overall, his solid foundation in Python, Django, and AWS makes him a promising candidate for the position."
   },
   {
     "rank": 4,
@@ -120,7 +120,7 @@
       "lambda",
       "ci/cd"
     ],
-    "reasoning": "[SKIPPED - daily Gemini quota exhausted, re-run later]"
+    "reasoning": "Farhan Ali is a strong candidate for the Backend Python Developer role, with concrete strengths in designing and building REST APIs using Django, as well as experience working with PostgreSQL databases and deploying services to AWS EC2. His experience with Docker, Git, and pytest also aligns well with the job requirements. However, a notable gap in his profile is the lack of experience with MySQL, which is one of the required SQL databases, and he also has no experience with CI/CD pipelines or AWS services like S3 and Lambda, which are listed as nice to have."
   },
   {
     "rank": 5,
@@ -151,7 +151,7 @@
       "lambda",
       "ci/cd"
     ],
-    "reasoning": "[SKIPPED - daily Gemini quota exhausted, re-run later]"
+    "reasoning": "Sahil Kapoor is a promising junior developer with some relevant experience in building REST API endpoints using Flask, which aligns with the job requirements. His experience with MySQL and basic understanding of REST APIs are also notable strengths. However, he lacks experience with key technologies such as Django, PostgreSQL, and AWS, which are crucial for the role. Additionally, his limited professional experience, currently only having an internship, may be a gap in terms of the required 2+ years of professional experience with Python."
   },
   {
     "rank": 6,
@@ -182,7 +182,7 @@
       "ci/cd",
       "pytest"
     ],
-    "reasoning": "[SKIPPED - daily Gemini quota exhausted, re-run later]"
+    "reasoning": "Arjun Mehta is a promising candidate for the Backend Python Developer role, with strengths in Python scripting and web development using Flask, as evident from his experience building a small Flask app for internal reporting. He also has hands-on experience with MySQL databases and Git version control, which aligns with the job requirements. However, there are gaps in his experience, particularly with designing and building REST APIs, as well as deploying and monitoring services on AWS, which are crucial aspects of the job. Additionally, his lack of experience with Docker and other cloud-related technologies may require additional training or onboarding."
   },
   {
     "rank": 7,
@@ -213,7 +213,7 @@
       "ci/cd",
       "pytest"
     ],
-    "reasoning": "[SKIPPED - daily Gemini quota exhausted, re-run later]"
+    "reasoning": "Meera Das has some relevant strengths for the Backend Python Developer role, including her experience with Python, Flask, and SQL, which could be valuable in designing and building REST APIs. Her experience as a Data Analyst has also given her a strong foundation in data analysis and visualization, which could be useful in understanding the data needs of the APIs. However, there are significant gaps in her skills, particularly in her lack of experience with key technologies such as PostgreSQL, MySQL, and AWS, as well as her limited understanding of REST API design and Docker. Additionally, her experience with Flask is basic, which may not be sufficient for the role's requirements."
   },
   {
     "rank": 8,
@@ -243,7 +243,7 @@
       "ci/cd",
       "pytest"
     ],
-    "reasoning": "[SKIPPED - daily Gemini quota exhausted, re-run later]"
+    "reasoning": "Kavya Reddy does not appear to be a strong fit for the Backend Python Developer role, as she lacks experience with key required skills such as Python, REST API design, and SQL databases. However, her experience as a graphic designer has likely honed her creative problem-solving skills, which could be beneficial in a development team. Additionally, her experience building simple landing pages using HTML, CSS, and basic JavaScript demonstrates some familiarity with front-end development, although this is not directly applicable to the backend developer position. Overall, the significant gaps in her technical skills, particularly with Python and backend development frameworks, would need to be addressed for her to be considered a viable candidate."
   },
   {
     "rank": 9,
@@ -274,7 +274,7 @@
       "ci/cd",
       "pytest"
     ],
-    "reasoning": "[SKIPPED - daily Gemini quota exhausted, re-run later]"
+    "reasoning": "Ananya Gupta's background as a Marketing Coordinator does not align with the requirements of a Backend Python Developer, as she lacks experience with key technologies such as Python, Django, and SQL databases. However, she does possess skills in Git and ORM tools, which could be transferable to a development role. A significant gap in her profile is the absence of any programming experience, particularly with Python, which is a crucial requirement for the position. Additionally, her experience in analyzing campaign performance using Google Analytics and Excel demonstrates her ability to work with data, but this is not directly applicable to the role of a Backend Python Developer."
   },
   {
     "rank": 10,
@@ -304,6 +304,6 @@
       "ci/cd",
       "pytest"
     ],
-    "reasoning": "[SKIPPED - daily Gemini quota exhausted, re-run later]"
+    "reasoning": "This candidate does not appear to be a strong fit for the Backend Python Developer role, as they lack experience with key technical skills such as Python, REST API design, and SQL databases. A notable gap in their profile is the absence of any programming experience, with their background being in human resources and recruitment. However, their experience in managing end-to-end recruitment for technical roles may have given them some familiarity with the technical hiring process, although this is not a direct strength for the developer position."
   }
 ]

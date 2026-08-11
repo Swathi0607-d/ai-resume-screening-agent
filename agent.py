@@ -153,11 +153,16 @@ CACHE_DIR = Path(".cache")
 CACHE_FILE = CACHE_DIR / "reasoning_cache.json"
 
 
-def _cache_key(jd_text: str, resume_text: str) -> str:
+def _cache_key(jd_text: str, resume_text: str, matched: list[str] | None = None,
+                missing: list[str] | None = None) -> str:
     h = hashlib.sha256()
     h.update(jd_text.encode("utf-8"))
     h.update(b"\x00")
     h.update(resume_text.encode("utf-8"))
+    h.update(b"\x00")
+    h.update(",".join(sorted(matched or [])).encode("utf-8"))
+    h.update(b"\x00")
+    h.update(",".join(sorted(missing or [])).encode("utf-8"))
     return h.hexdigest()
 
 
@@ -176,7 +181,7 @@ def save_cache(cache: dict):
 
 
 # --------------------------------------------------------------------------
-# AI-generated reasoning (Google Gemini)
+# AI-generated reasoning (Groq)
 # --------------------------------------------------------------------------
 
 SYSTEM_PROMPT = """You are an experienced technical recruiter assistant.
@@ -188,52 +193,80 @@ Do not invent details that are not in the resume. Do not give a numeric
 score -- only write the explanation.
 """
 
+GROQ_MODEL = "llama-3.3-70b-versatile"
+
 
 class DailyQuotaExhausted(Exception):
-    """Raised when the Gemini free-tier daily request quota is used up."""
+    """Raised when the Groq free-tier daily request/token quota is used up."""
     pass
 
 
 def get_llm_reasoning(jd_text: str, resume_text: str, candidate_name: str,
+                       matched_skills: list[str] | None = None,
+                       missing_skills: list[str] | None = None,
                        model=None, cache: dict | None = None,
                        max_retries: int = 3) -> str:
+    matched_skills = matched_skills or []
+    missing_skills = missing_skills or []
+
     if model is None:
         return (
-            "[OFFLINE MODE - no GEMINI_API_KEY set. This is a placeholder so "
-            "the pipeline still runs end-to-end. Set GEMINI_API_KEY in your "
+            "[OFFLINE MODE - no GROQ_API_KEY set. This is a placeholder so "
+            "the pipeline still runs end-to-end. Set GROQ_API_KEY in your "
             ".env file to get real AI-generated reasoning.]"
         )
 
     # 1. Check cache first -- this is the main way we avoid burning quota.
-    key = _cache_key(jd_text, resume_text)
+    key = _cache_key(jd_text, resume_text, matched_skills, missing_skills)
     if cache is not None and key in cache:
         return cache[key] + "  [cached]"
 
-    prompt = (
-        f"{SYSTEM_PROMPT}\n\n"
+    matched_str = ", ".join(matched_skills) if matched_skills else "none"
+    missing_str = ", ".join(missing_skills) if missing_skills else "none"
+
+    user_prompt = (
         f"JOB DESCRIPTION:\n{jd_text}\n\n"
         f"CANDIDATE ({candidate_name}) RESUME:\n{resume_text}\n\n"
-        "Write the assessment now."
+        f"CALCULATED SKILL MATCH (already determined by keyword matching -- "
+        f"treat this as ground truth, do not contradict it):\n"
+        f"- Skills the candidate HAS: {matched_str}\n"
+        f"- Skills the candidate is MISSING: {missing_str}\n\n"
+        "Write the assessment now. Your strengths and gaps must be "
+        "consistent with the CALCULATED SKILL MATCH above -- do not claim "
+        "the candidate has a skill listed as missing, and do not claim "
+        "they lack a skill listed as matched. You may still reference "
+        "other relevant experience from the resume that isn't in the "
+        "skill list."
     )
 
-    from google.api_core.exceptions import ResourceExhausted
+    from groq import RateLimitError
 
     delay = 5
     for attempt in range(1, max_retries + 1):
         try:
-            response = model.generate_content(prompt)
-            text = response.text.strip()
+            response = model.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.4,
+                max_tokens=300,
+            )
+            text = response.choices[0].message.content.strip()
             if cache is not None:
                 cache[key] = text
                 save_cache(cache)
             return text
-        except ResourceExhausted as e:
+        except RateLimitError as e:
             message = str(e)
-            # Daily quota (PerDay) is a hard wall -- retrying wastes time
-            # and doesn't help, so stop the whole run instead of looping.
-            if "PerDay" in message or "per_day" in message.lower():
+            # Groq reports daily limits as "requests per day" / "TPD"
+            # (tokens per day) in the error body -- that's a hard wall for
+            # today, so stop the whole run instead of retrying pointlessly.
+            if any(term in message.lower() for term in
+                   ("per day", "tpd", "rpd", "daily")):
                 raise DailyQuotaExhausted(
-                    "Gemini free-tier DAILY quota is used up. "
+                    "Groq free-tier DAILY quota is used up. "
                     "Results so far have been saved -- re-run tomorrow, "
                     "or on the same command, to pick up remaining resumes "
                     "(cached ones won't cost you anything)."
@@ -275,14 +308,13 @@ def run(jd_path: str, resumes_dir: str, out_prefix: str, use_llm: bool = True):
     model = None
     cache = load_cache()
     if use_llm:
-        api_key = os.environ.get("GEMINI_API_KEY")
+        api_key = os.environ.get("GROQ_API_KEY")
         if api_key:
-            import google.generativeai as genai
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-flash-latest")
+            from groq import Groq
+            model = Groq(api_key=api_key)
         else:
             print(
-                "WARNING: GEMINI_API_KEY not set. Running in offline mode -- "
+                "WARNING: GROQ_API_KEY not set. Running in offline mode -- "
                 "scores are real, but reasoning text will be a placeholder.",
                 file=sys.stderr,
             )
@@ -297,11 +329,13 @@ def run(jd_path: str, resumes_dir: str, out_prefix: str, use_llm: bool = True):
 
         try:
             reasoning = get_llm_reasoning(
-                jd_text, text, candidate_name, model=model, cache=cache
+                jd_text, text, candidate_name,
+                matched_skills=matched, missing_skills=missing,
+                model=model, cache=cache,
             )
         except DailyQuotaExhausted as e:
             print(f"\n{e}\n", file=sys.stderr)
-            reasoning = "[SKIPPED - daily Gemini quota exhausted, re-run later]"
+            reasoning = "[SKIPPED - daily Groq quota exhausted, re-run later]"
             quota_hit = True
 
         results.append({
@@ -332,7 +366,7 @@ def run(jd_path: str, resumes_dir: str, out_prefix: str, use_llm: bool = True):
                     "education": extract_education(text2),
                     "matched_skills": matched2,
                     "missing_skills": missing2,
-                    "reasoning": "[SKIPPED - daily Gemini quota exhausted, re-run later]",
+                    "reasoning": "[SKIPPED - daily Groq quota exhausted, re-run later]",
                 })
             break
 
