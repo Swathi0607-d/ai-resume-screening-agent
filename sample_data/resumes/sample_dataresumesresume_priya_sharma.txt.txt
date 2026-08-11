@@ -1,0 +1,23 @@
+Priya Sharma
+Backend Software Engineer
+Email: priya.sharma@example.com | Phone: 98765xxxxx
+
+Summary:
+Backend developer with 4 years of experience building REST APIs in Python using
+Django and Flask. Strong background in PostgreSQL database design and AWS deployment.
+
+Experience:
+Backend Engineer, FinTechCo (2021 - Present)
+- Built and maintained REST APIs in Python (Django, Django REST Framework)
+- Designed PostgreSQL schemas serving 2M+ daily transactions
+- Deployed and monitored services on AWS EC2 and S3
+- Set up CI/CD pipelines using GitHub Actions
+- Wrote unit tests with pytest, maintained 85% coverage
+- Used Docker to containerize microservices
+
+Skills:
+Python, Django, Flask, REST APIs, PostgreSQL, MySQL, SQLAlchemy, Docker, AWS (EC2, S3, Lambda),
+Git, pytest, CI/CD, microservices, Agile/Scrum
+
+Education:
+B.Tech in Computer Science, VTU (2020)

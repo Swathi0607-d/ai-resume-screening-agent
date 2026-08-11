@@ -1,0 +1,21 @@
+Job Title: Backend Python Developer
+
+Responsibilities:
+- Design, build, and maintain REST APIs using Python (Flask or Django)
+- Work with SQL databases (PostgreSQL / MySQL)
+- Deploy and monitor services on AWS
+
+Required Skills:
+- 2+ years of professional experience with Python
+- Strong understanding of REST API design
+- Experience with SQL databases and ORM tools (SQLAlchemy or Django ORM)
+- Familiarity with Git and version control workflows
+- Basic understanding of Docker
+
+Nice to Have:
+- Experience with AWS (EC2, S3, Lambda)
+- Exposure to CI/CD pipelines
+- Familiarity with pytest
+
+Education:
+- Bachelor's degree in Computer Science or related field
