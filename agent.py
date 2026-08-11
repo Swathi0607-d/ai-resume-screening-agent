@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # reads .env automatically, no need to type export ever again
+
 from pathlib import Path
 
 
@@ -34,6 +39,7 @@ def extract_text(path: Path) -> str:
     else:
         raise ValueError(f"Unsupported file type: {path.suffix}")
 
+
 # --------------------------------------------------------------------------
 # Job description skill extraction
 # --------------------------------------------------------------------------
@@ -54,6 +60,7 @@ def extract_skill_keywords(jd_text: str) -> list[str]:
     ]
     jd_lower = jd_text.lower()
     return [skill for skill in common_skills if skill in jd_lower]
+
 
 # --------------------------------------------------------------------------
 # NLP similarity score (TF-IDF + cosine similarity)
@@ -79,6 +86,7 @@ def compute_similarity_scores(jd_text: str, resume_texts: list[str]) -> list[flo
 
     similarities = cosine_similarity(jd_vector, resume_vectors)[0]
     return [round(float(s) * 100, 2) for s in similarities]
+
 
 # --------------------------------------------------------------------------
 # Rank all resumes in a folder against the JD
@@ -106,13 +114,57 @@ def rank_resumes(jd_path: str, resumes_dir: str) -> list[dict]:
         r["rank"] = i
     return results
 
+
+# --------------------------------------------------------------------------
+# AI-generated reasoning (Google Gemini)
+# --------------------------------------------------------------------------
+
+SYSTEM_PROMPT = """You are an experienced technical recruiter assistant.
+You will be given a job description and one candidate's resume text.
+Write a short, honest assessment (3-4 sentences) of how well this
+candidate fits the role. Mention 1-3 concrete strengths and 1-2 concrete
+gaps, referencing specific skills or experience from the resume and JD.
+Do not invent details that are not in the resume. Do not give a numeric
+score -- only write the explanation.
+"""
+
+
+def get_llm_reasoning(jd_text: str, resume_text: str, model=None) -> str:
+    """
+    Calls the Gemini API to generate a human-readable explanation for this
+    candidate's fit. If no model client is available (e.g. no API key set),
+    we return a clearly-labeled placeholder so the pipeline still runs.
+    """
+    if model is None:
+        return "[OFFLINE MODE - no GEMINI_API_KEY set]"
+
+    prompt = (
+        f"{SYSTEM_PROMPT}\n\n"
+        f"JOB DESCRIPTION:\n{jd_text}\n\n"
+        f"CANDIDATE RESUME:\n{resume_text}\n\n"
+        "Write the assessment now."
+    )
+    response = model.generate_content(prompt)
+    return response.text.strip()
+
+
 # --- Quick manual test, so you can see this actually works ---
 if __name__ == "__main__":
-    results = rank_resumes(
-        jd_path="sample_data/job_description.txt",
-        resumes_dir="sample_data/resumes",
-    )
-    print("RANKED CANDIDATES")
-    print("-" * 40)
-    for r in results:
-        print(f"#{r['rank']:>2}  {r['candidate_file']:<35} score={r['score']}")
+    jd_path = Path("sample_data/job_description.txt")
+    jd_text = extract_text(jd_path)
+
+    resume_path = Path("sample_data/resumes/resume_priya_sharma.txt")
+    resume_text = extract_text(resume_path)
+
+    api_key = os.environ.get("GEMINI_API_KEY")
+    model = None
+    if api_key:
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-flash-latest")
+    else:
+        print("No GEMINI_API_KEY set — reasoning will be a placeholder.\n")
+
+    reasoning = get_llm_reasoning(jd_text, resume_text, model=model)
+    print("AI reasoning for Priya Sharma:")
+    print(reasoning)
