@@ -34,6 +34,26 @@ def extract_text(path: Path) -> str:
     else:
         raise ValueError(f"Unsupported file type: {path.suffix}")
 
+# --------------------------------------------------------------------------
+# Job description skill extraction
+# --------------------------------------------------------------------------
+
+def extract_skill_keywords(jd_text: str) -> list[str]:
+    """
+    Pull candidate 'skill-like' tokens out of the job description so we can
+    later check which resumes mention them. This is a simple keyword list
+    approach -- easy to explain and verify, though it only catches skills
+    from a fixed list rather than discovering new ones automatically.
+    """
+    common_skills = [
+        "python", "django", "flask", "fastapi", "rest api", "rest apis",
+        "sql", "postgresql", "mysql", "sqlalchemy", "orm", "git", "docker",
+        "kubernetes", "aws", "ec2", "s3", "lambda", "ci/cd", "pytest",
+        "unit testing", "microservices", "agile", "scrum", "terraform",
+        "react", "javascript", "html", "css",
+    ]
+    jd_lower = jd_text.lower()
+    return [skill for skill in common_skills if skill in jd_lower]
 
 # --- Quick manual test, so you can see this actually works ---
 if __name__ == "__main__":
@@ -42,3 +62,9 @@ if __name__ == "__main__":
     print("Extracted text from:", sample_resume)
     print("-" * 50)
     print(text)
+
+    jd_path = Path("sample_data/job_description.txt")
+    jd_text = extract_text(jd_path)
+    skills = extract_skill_keywords(jd_text)
+    print("\nSkills found in job description:")
+    print(skills)
