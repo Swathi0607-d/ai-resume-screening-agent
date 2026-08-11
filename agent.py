@@ -2,6 +2,8 @@ import os
 import re
 import csv
 import json
+import time
+import hashlib
 import argparse
 import sys
 from pathlib import Path
@@ -95,6 +97,38 @@ def skill_match_breakdown(resume_text: str, skills: list[str]) -> tuple[list[str
 
 
 # --------------------------------------------------------------------------
+# Experience (years) and education extraction
+# --------------------------------------------------------------------------
+
+def extract_years_of_experience(resume_text: str):
+    """
+    Looks for patterns like '4 years', '6+ years', '2-3 years' in the resume
+    text and returns the highest number found -- a simple, explainable
+    heuristic rather than a black-box guess.
+    """
+    matches = re.findall(r"(\d+)\+?\s*(?:-\s*\d+\s*)?years?", resume_text, re.IGNORECASE)
+    if not matches:
+        return None
+    return max(int(m) for m in matches)
+
+
+def extract_education(resume_text: str):
+    """
+    Looks for common degree abbreviations/keywords and returns the line
+    they appear on, which usually contains the full degree + institution.
+    """
+    degree_keywords = [
+        "b.tech", "btech", "b.e.", "be ", "m.tech", "mtech", "mba",
+        "b.sc", "bsc", "m.sc", "msc", "diploma", "bachelor", "master", "phd",
+    ]
+    for line in resume_text.splitlines():
+        line_lower = line.lower()
+        if any(kw in line_lower for kw in degree_keywords):
+            return line.strip()
+    return None
+
+
+# --------------------------------------------------------------------------
 # NLP similarity score (TF-IDF + cosine similarity)
 # --------------------------------------------------------------------------
 
@@ -111,6 +145,37 @@ def compute_similarity_scores(jd_text: str, resume_texts: list[str]) -> list[flo
 
 
 # --------------------------------------------------------------------------
+# Response caching -- avoid paying/spending quota twice for the same
+# (job description, resume) pair.
+# --------------------------------------------------------------------------
+
+CACHE_DIR = Path(".cache")
+CACHE_FILE = CACHE_DIR / "reasoning_cache.json"
+
+
+def _cache_key(jd_text: str, resume_text: str) -> str:
+    h = hashlib.sha256()
+    h.update(jd_text.encode("utf-8"))
+    h.update(b"\x00")
+    h.update(resume_text.encode("utf-8"))
+    return h.hexdigest()
+
+
+def load_cache() -> dict:
+    if CACHE_FILE.exists():
+        try:
+            return json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+def save_cache(cache: dict):
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    CACHE_FILE.write_text(json.dumps(cache, indent=2), encoding="utf-8")
+
+
+# --------------------------------------------------------------------------
 # AI-generated reasoning (Google Gemini)
 # --------------------------------------------------------------------------
 
@@ -124,7 +189,14 @@ score -- only write the explanation.
 """
 
 
-def get_llm_reasoning(jd_text: str, resume_text: str, candidate_name: str, model=None) -> str:
+class DailyQuotaExhausted(Exception):
+    """Raised when the Gemini free-tier daily request quota is used up."""
+    pass
+
+
+def get_llm_reasoning(jd_text: str, resume_text: str, candidate_name: str,
+                       model=None, cache: dict | None = None,
+                       max_retries: int = 3) -> str:
     if model is None:
         return (
             "[OFFLINE MODE - no GEMINI_API_KEY set. This is a placeholder so "
@@ -132,14 +204,50 @@ def get_llm_reasoning(jd_text: str, resume_text: str, candidate_name: str, model
             ".env file to get real AI-generated reasoning.]"
         )
 
+    # 1. Check cache first -- this is the main way we avoid burning quota.
+    key = _cache_key(jd_text, resume_text)
+    if cache is not None and key in cache:
+        return cache[key] + "  [cached]"
+
     prompt = (
         f"{SYSTEM_PROMPT}\n\n"
         f"JOB DESCRIPTION:\n{jd_text}\n\n"
         f"CANDIDATE ({candidate_name}) RESUME:\n{resume_text}\n\n"
         "Write the assessment now."
     )
-    response = model.generate_content(prompt)
-    return response.text.strip()
+
+    from google.api_core.exceptions import ResourceExhausted
+
+    delay = 5
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = model.generate_content(prompt)
+            text = response.text.strip()
+            if cache is not None:
+                cache[key] = text
+                save_cache(cache)
+            return text
+        except ResourceExhausted as e:
+            message = str(e)
+            # Daily quota (PerDay) is a hard wall -- retrying wastes time
+            # and doesn't help, so stop the whole run instead of looping.
+            if "PerDay" in message or "per_day" in message.lower():
+                raise DailyQuotaExhausted(
+                    "Gemini free-tier DAILY quota is used up. "
+                    "Results so far have been saved -- re-run tomorrow, "
+                    "or on the same command, to pick up remaining resumes "
+                    "(cached ones won't cost you anything)."
+                ) from e
+            # Otherwise it's a short per-minute limit -- worth a short wait.
+            if attempt == max_retries:
+                raise
+            print(f"  Rate limited, retrying in {delay}s "
+                  f"(attempt {attempt}/{max_retries})...", file=sys.stderr)
+            time.sleep(delay)
+            delay *= 2
+
+    # Should not be reached
+    raise RuntimeError("Unexpected retry loop exit")
 
 
 # --------------------------------------------------------------------------
@@ -165,6 +273,7 @@ def run(jd_path: str, resumes_dir: str, out_prefix: str, use_llm: bool = True):
     scores = compute_similarity_scores(jd_text, resume_texts)
 
     model = None
+    cache = load_cache()
     if use_llm:
         api_key = os.environ.get("GEMINI_API_KEY")
         if api_key:
@@ -179,19 +288,53 @@ def run(jd_path: str, resumes_dir: str, out_prefix: str, use_llm: bool = True):
             )
 
     results = []
+    quota_hit = False
     for path, text, score in zip(resume_files, resume_texts, scores):
         candidate_name = guess_candidate_name(text, fallback=path.stem)
         matched, missing = skill_match_breakdown(text, skills)
-        reasoning = get_llm_reasoning(jd_text, text, candidate_name, model=model)
+        years_experience = extract_years_of_experience(text)
+        education = extract_education(text)
+
+        try:
+            reasoning = get_llm_reasoning(
+                jd_text, text, candidate_name, model=model, cache=cache
+            )
+        except DailyQuotaExhausted as e:
+            print(f"\n{e}\n", file=sys.stderr)
+            reasoning = "[SKIPPED - daily Gemini quota exhausted, re-run later]"
+            quota_hit = True
 
         results.append({
             "candidate_name": candidate_name,
             "file": path.name,
             "score": score,
+            "years_experience": years_experience,
+            "education": education,
             "matched_skills": matched,
             "missing_skills": missing,
             "reasoning": reasoning,
         })
+
+        if quota_hit:
+            # Stop calling the API for the rest of this run, but still
+            # score + save every remaining resume (score-only, no LLM text).
+            for path2, text2, score2 in zip(
+                resume_files[len(results):], resume_texts[len(results):],
+                scores[len(results):]
+            ):
+                candidate_name2 = guess_candidate_name(text2, fallback=path2.stem)
+                matched2, missing2 = skill_match_breakdown(text2, skills)
+                results.append({
+                    "candidate_name": candidate_name2,
+                    "file": path2.name,
+                    "score": score2,
+                    "years_experience": extract_years_of_experience(text2),
+                    "education": extract_education(text2),
+                    "matched_skills": matched2,
+                    "missing_skills": missing2,
+                    "reasoning": "[SKIPPED - daily Gemini quota exhausted, re-run later]",
+                })
+            break
 
     results.sort(key=lambda r: r["score"], reverse=True)
     for i, r in enumerate(results, start=1):
@@ -203,6 +346,8 @@ def run(jd_path: str, resumes_dir: str, out_prefix: str, use_llm: bool = True):
             "candidate_name": r["candidate_name"],
             "file": r["file"],
             "score": r["score"],
+            "years_experience": r["years_experience"],
+            "education": r["education"],
             "matched_skills": r["matched_skills"],
             "missing_skills": r["missing_skills"],
             "reasoning": r["reasoning"],
@@ -212,6 +357,14 @@ def run(jd_path: str, resumes_dir: str, out_prefix: str, use_llm: bool = True):
 
     save_outputs(ordered_results, out_prefix)
     print_summary(ordered_results)
+
+    if quota_hit:
+        print(
+            "\nNote: daily quota ran out partway through. Resumes already "
+            "processed are cached, so re-running the same command later "
+            "will only spend quota on the ones still marked SKIPPED.",
+            file=sys.stderr,
+        )
 
 
 def save_outputs(results: list[dict], out_prefix: str):
@@ -226,12 +379,13 @@ def save_outputs(results: list[dict], out_prefix: str):
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow([
-            "rank", "candidate_name", "file", "score",
-            "matched_skills", "missing_skills", "reasoning",
+            "rank", "candidate_name", "file", "score", "years_experience",
+            "education", "matched_skills", "missing_skills", "reasoning",
         ])
         for r in results:
             writer.writerow([
                 r["rank"], r["candidate_name"], r["file"], r["score"],
+                r["years_experience"], r["education"],
                 "; ".join(r["matched_skills"]), "; ".join(r["missing_skills"]),
                 r["reasoning"],
             ])
